@@ -1,0 +1,222 @@
+/* dimscreen — the Pocket look (Pocket UI kit L6: P9 Cream / P11 Night, B8 keys, F3 label bands, LCD
+   inlays, 9×9 pixel icons). Everything here is scoped to html[data-look="pocket"], so Standard
+   (style.css) is untouched. Readability first: body text sits on solid surfaces; the retro lives in
+   the LCD, the keys, the bands and the icons. Fonts are bundled (ui/fonts, SIL OFL 1.1). */
+
+@font-face { font-family: "Space Grotesk"; src: url("fonts/SpaceGrotesk.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+@font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Space Mono"; src: url("fonts/SpaceMono-Bold.ttf") format("truetype"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Doto"; src: url("fonts/Doto.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+
+@property --press { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+:root[data-look="pocket"] {
+  --bg: #e6e2d8; --bg2: #fbf9f4; --surface: #f6f3ec; --surface-2: #ebe7dd; --line: #d3ccbd;
+  --text: #1b1915; --text-2: #4a453c; --text-3: #6a645a;
+  --chrome-bg: #2a2722; --chrome-fg: #f6f3ec;
+  --accent: #ff5b1f; --on-accent: #1b1915;
+  --warn: #9a5b00; --bad: #c8341b; --on-bad: #ffffff;
+  --disp-bg: #b1bd93; --disp-fg: #1f2a17; --disp-hot: #e9b45a; --disp-bad: #ee8f6e;
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+  --font-ui: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Space Mono", "Cascadia Mono", Consolas, monospace;
+  --font-num: "Doto", "Space Mono", monospace;
+  --num-scale: .74;
+  --radius: 14px; --btn-r: 10px;
+  --lip-dark: color-mix(in srgb, var(--line) 55%, #000);
+  --card-shadow: 0 0 0 1px var(--line), 0 2px 0 var(--line), 0 10px 24px rgba(40, 30, 10, .07);
+  --ease-back: cubic-bezier(.3, 1.45, .5, 1);
+}
+:root[data-look="pocket"][data-scheme="dark"] {
+  --bg: #1a1917; --bg2: #2a2926; --surface: #262522; --surface-2: #302e2a; --line: #3f3c36;
+  --text: #f4efe5; --text-2: #d0c9ba; --text-3: #a39c8d;
+  --chrome-bg: #0f0e0d; --chrome-fg: #ece6da;
+  --accent: #ff6a2b; --on-accent: #1b1915;
+  --warn: #f0b54a; --bad: #ff7a5c; --on-bad: #1b1915;
+  --disp-bg: #45b3a1; --disp-fg: #04211c; --disp-hot: #e2b04f; --disp-bad: #ef8b6c;
+  --card-shadow: 0 0 0 1px var(--line), 0 2px 0 #0b0a09, 0 10px 24px rgba(0, 0, 0, .3);
+}
+
+[data-look="pocket"] body {
+  font-size: 15px;
+  background: radial-gradient(color-mix(in srgb, var(--text) 12%, transparent) 1px, transparent 1.5px) 0 0 / 16px 16px, var(--bg);
+}
+[data-look="pocket"] .i { width: 18px; height: 18px; }
+
+/* ───────────── top bar: LCD logo, mono state chip, plastic window keys ───────────── */
+[data-look="pocket"] .top { background: none; border-bottom: 0; height: 52px; padding: 0 10px 0 16px; }
+[data-look="pocket"] .logo {
+  width: 28px; height: 28px; border-radius: 5px; background: linear-gradient(170deg, color-mix(in srgb, #fff 18%, var(--disp-bg)), var(--disp-bg) 60%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .28), 0 0 0 3px var(--chrome-bg), 0 0 0 4px #000;
+}
+[data-look="pocket"] .logo::after { display: none; }
+[data-look="pocket"] .logo-d { display: block; font: 900 26px/1 var(--font-num); color: var(--disp-fg); margin-top: -3px; }
+[data-look="pocket"] .brand { font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+[data-look="pocket"] .pill { font: 700 11px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; border-radius: 99px; padding: 3px 10px; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface); }
+[data-look="pocket"] .pill.on { color: var(--on-accent); background: var(--accent); box-shadow: none; }
+[data-look="pocket"] .pill.wait { color: var(--bg2); background: var(--warn); box-shadow: none; }
+[data-look="pocket"] .winkeys {
+  gap: 5px; padding: 4px; border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 7%, var(--bg)); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .2), inset 0 0 0 1px var(--line);
+}
+[data-look="pocket"] .wk {
+  width: 34px; height: 28px; margin-bottom: 2px; border-radius: 7px;
+  background: linear-gradient(to bottom, color-mix(in srgb, #fff 14%, var(--surface-2)), var(--surface-2));
+  transform: translateY(calc(var(--press) * 2px));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--line) 75%, #000), 0 calc((1 - var(--press)) * 2px) 0 var(--lip-dark);
+  transition: --press calc(var(--m) * 60ms) ease-out, background calc(var(--m) * 120ms);
+}
+[data-look="pocket"] .wk:hover { background: linear-gradient(to bottom, color-mix(in srgb, #fff 24%, var(--surface-2)), var(--surface-2)); color: var(--text-2); }
+[data-look="pocket"] .wk:active { --press: 1; }
+[data-look="pocket"] .wk-x:active { background: var(--bad); color: var(--on-bad); }
+[data-look="pocket"] .wk .i { width: 18px; height: 18px; }
+
+/* ───────────── F3 modules: a card with a printed graphite band; Shade gets the orange one ───────────── */
+[data-look="pocket"] .content { padding: 6px 16px 16px; gap: 16px; }
+[data-look="pocket"] .col { gap: 16px; }
+[data-look="pocket"] .panel { border: 0; border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; }
+[data-look="pocket"] .ph {
+  --band: var(--chrome-bg); --band-fg: var(--chrome-fg);
+  background: var(--band); color: var(--band-fg); border-bottom: 0; min-height: 38px; padding: 6px 8px 6px 14px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .25);
+}
+[data-look="pocket"] .ph .pt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .11em; color: inherit; gap: 9px; }
+[data-look="pocket"] .ph .pt .i { color: var(--accent); }
+[data-look="pocket"] .ph .cnt { font: 12px var(--font-mono); color: inherit; opacity: .78; }
+[data-look="pocket"] .ph::after { content: ""; flex: none; width: 24px; height: 10px; margin: 0 4px 0 auto; opacity: .3; background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px); }
+[data-look="pocket"] .dialog .ph::after { display: none; }
+[data-look="pocket"] .ph .btn.ghost { color: inherit; }
+[data-look="pocket"] #shade .ph { --band: var(--accent); --band-fg: var(--on-accent); }
+[data-look="pocket"] #shade .ph .pt .i { color: inherit; }
+[data-look="pocket"] .pb { padding: 14px 15px 16px; gap: 13px; }
+[data-look="pocket"] .field-h { font: 700 11px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+[data-look="pocket"] .foot { font-family: var(--font-mono); font-size: 11px; }
+[data-look="pocket"] .note { border-radius: 10px; }
+
+/* ───────────── B8 keys: raised plastic that travels 3 px and springs back ───────────── */
+[data-look="pocket"] .btn {
+  --travel: 3px; --ring: color-mix(in srgb, var(--line) 75%, #000); --lip: var(--lip-dark); --shade: rgba(0, 0, 0, .14);
+  border: 0; border-radius: var(--btn-r); margin-bottom: 3px; padding: 8px 13px 7px; font-size: 13.5px; color: var(--text);
+  background: linear-gradient(to bottom, color-mix(in srgb, #fff 14%, var(--surface-2)), var(--surface-2));
+  transform: translateY(calc(var(--press) * var(--travel)));
+  box-shadow: 0 0 0 1px var(--ring), 0 calc((1 - var(--press)) * var(--travel)) 0 var(--lip), 0 calc(5px - var(--press) * 4px) calc(10px - var(--press) * 7px) var(--shade);
+  transition: --press calc(var(--m) * 60ms) ease-out, background calc(var(--m) * 120ms);
+}
+[data-look="pocket"] .btn:hover { background: linear-gradient(to bottom, color-mix(in srgb, #fff 24%, var(--surface-2)), var(--surface-2)); filter: none; }
+[data-look="pocket"] .btn:active { --press: 1; filter: none; }
+[data-look="pocket"] .btn.ack { animation: keyUp calc(var(--m) * 240ms + 1ms) var(--ease); }
+[data-look="pocket"] .btn.primary {
+  --ring: color-mix(in srgb, var(--accent) 62%, #000); --lip: color-mix(in srgb, var(--accent) 52%, #000); --shade: rgba(0, 0, 0, .16);
+  color: var(--on-accent); background: linear-gradient(to bottom, color-mix(in srgb, #fff 16%, var(--accent)), var(--accent));
+}
+[data-look="pocket"] .btn.primary.is-on {
+  --ring: #000; --lip: #000; --shade: rgba(0, 0, 0, .2);
+  color: var(--chrome-fg); background: linear-gradient(to bottom, color-mix(in srgb, #fff 12%, var(--chrome-bg)), var(--chrome-bg));
+}
+[data-look="pocket"] .btn.primary.is-on .i { color: var(--accent); }
+[data-look="pocket"] .btn.ghost { --travel: 1px; background: transparent; box-shadow: none; margin-bottom: 0; color: var(--text-2); }
+[data-look="pocket"] .btn.lg { font-size: 15px; padding: 11px 16px 10px; }
+[data-look="pocket"] .btn.sm { font-size: 12.5px; padding: 5px 10px 4px; }
+[data-look="pocket"] .presets .btn.on { color: var(--chrome-fg); background: linear-gradient(to bottom, color-mix(in srgb, #fff 12%, var(--chrome-bg)), var(--chrome-bg)); --ring: #000; --lip: #000; }
+[data-look="pocket"][data-scheme="dark"] .presets .btn.on { --ring: color-mix(in srgb, var(--accent) 70%, #000); }
+[data-look="pocket"] .keycap { font-family: var(--font-mono); font-size: 12.5px; }
+[data-look="pocket"] .keycap.rec { --ring: color-mix(in srgb, var(--accent) 62%, #000); color: var(--text); background: linear-gradient(to bottom, color-mix(in srgb, #fff 40%, var(--accent)), color-mix(in srgb, #fff 20%, var(--accent))); }
+@keyframes keyUp { 0% { --press: 1; } 45% { --press: -.35; } 100% { --press: 0; } }
+
+/* ───────────── LCD inlay ───────────── */
+[data-look="pocket"] .display {
+  position: relative; isolation: isolate; border: 0; border-radius: 6px; padding: 10px 14px 12px; margin: 5px;
+  background: linear-gradient(170deg, color-mix(in srgb, #fff 18%, var(--disp-bg)), var(--disp-bg) 60%);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(0, 0, 0, .3), 0 0 0 4px var(--chrome-bg), 0 0 0 5px #000;
+}
+[data-look="pocket"] .display::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .045) 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, rgba(0, 0, 0, .045) 0 1px, transparent 1px 3px);
+}
+[data-look="pocket"] .d-lbl { font: 700 11px/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: color-mix(in srgb, var(--disp-fg) 74%, var(--disp-bg)); }
+[data-look="pocket"] .d-num { font: 800 calc(64px * var(--num-scale))/1 var(--font-num); letter-spacing: 0; text-shadow: 2px 2px 0 rgba(0, 0, 0, .12); }
+[data-look="pocket"] .d-sub { font-size: 12.5px; color: color-mix(in srgb, var(--disp-fg) 82%, var(--disp-bg)); }
+[data-look="pocket"] .d-bar { background: rgba(0, 0, 0, .12); }
+[data-look="pocket"] .d-bar i { background: var(--disp-fg); transition: width calc(var(--m) * 120ms) steps(6, end); }
+/* off: the backlight is out */
+[data-look="pocket"] .display.off { filter: saturate(.45) brightness(.92); }
+[data-look="pocket"] .display.off .d-num { opacity: .55; }
+[data-look="pocket"] .display.hot { --disp-bg: #e9b45a; --disp-fg: #2a1a00; background: linear-gradient(170deg, color-mix(in srgb, #fff 18%, var(--disp-bg)), var(--disp-bg) 60%); }
+[data-look="pocket"] .display.boot .d-num { animation: lcdOn calc(var(--m) * 300ms + 1ms) steps(1, end); }
+@keyframes lcdOn { 0% { opacity: 0; } 30% { opacity: 1; } 50% { opacity: .2; } 70%, 100% { opacity: 1; } }
+
+/* ───────────── strength slider: a recessed track with a key for a thumb ───────────── */
+[data-look="pocket"] input[type="range"] { height: 34px; }
+[data-look="pocket"] input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px; border-radius: 5px;
+  background: linear-gradient(to right, var(--accent) var(--pct), var(--bg2) var(--pct));
+  box-shadow: inset 0 0 0 1px var(--line), inset 0 2px 2px rgba(0, 0, 0, .18);
+}
+[data-look="pocket"] input[type="range"]::-webkit-slider-thumb {
+  width: 18px; height: 28px; margin-top: -10px; border-radius: 6px; border: 0;
+  /* three grip lines across a plastic face */
+  background:
+    linear-gradient(color-mix(in srgb, var(--text) 30%, transparent) 0 0) center 9px / 8px 1px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--text) 30%, transparent) 0 0) center 13px / 8px 1px no-repeat,
+    linear-gradient(color-mix(in srgb, var(--text) 30%, transparent) 0 0) center 17px / 8px 1px no-repeat,
+    linear-gradient(to bottom, color-mix(in srgb, #fff 14%, var(--surface-2)), var(--surface-2));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--line) 75%, #000), 0 3px 0 var(--lip-dark), 0 5px 10px rgba(0, 0, 0, .18);
+}
+
+/* ───────────── tint swatches: little keys ───────────── */
+[data-look="pocket"] .sw { border-radius: 10px; font-size: 12.5px; }
+[data-look="pocket"] .sw i { width: 32px; height: 32px; border-radius: 8px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .55), 0 3px 0 rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .18); margin-bottom: 3px; }
+[data-look="pocket"] .sw[aria-checked="true"] i { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ───────────── chips and segments ───────────── */
+[data-look="pocket"] .chip { border-radius: 99px; font-size: 13px; padding: 6px 13px; }
+[data-look="pocket"] .field-h .chip { font: 700 11px var(--font-mono); text-transform: uppercase; letter-spacing: .06em; border-color: var(--line); background: var(--surface); padding: 3px 10px; }
+[data-look="pocket"] .seg { border-radius: 99px; padding: 3px; background: color-mix(in srgb, var(--text) 6%, var(--bg)); border: 0; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .18), inset 0 0 0 1px var(--line); }
+[data-look="pocket"] .chip.on, [data-look="pocket"] .chip[aria-checked="true"] { background: var(--chrome-bg); color: var(--chrome-fg); box-shadow: 0 0 0 1px #000; }
+[data-look="pocket"][data-scheme="dark"] :is(.chip.on, .chip[aria-checked="true"]) { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 70%, #000); }
+
+/* ───────────── display map: each monitor is a little LCD ───────────── */
+[data-look="pocket"] .map { border: 0; border-radius: 10px; background: color-mix(in srgb, var(--text) 6%, var(--bg)); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .18), inset 0 0 0 1px var(--line); }
+[data-look="pocket"] .mon {
+  border: 0; border-radius: 4px; color: var(--disp-fg);
+  background: linear-gradient(170deg, color-mix(in srgb, #fff 18%, var(--disp-bg)), var(--disp-bg) 60%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3), 0 0 0 3px var(--chrome-bg);
+  filter: saturate(.35) brightness(.9);
+}
+[data-look="pocket"] .mon b { font: 900 22px/1 var(--font-num); color: var(--disp-fg); }
+[data-look="pocket"] .mon span { color: color-mix(in srgb, var(--disp-fg) 80%, var(--disp-bg)); font: 10.5px var(--font-mono); }
+[data-look="pocket"] .mon.on { border: 0; filter: none; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3), 0 0 0 3px var(--chrome-bg), 0 0 0 5px var(--accent); }
+[data-look="pocket"] .mon.on b { color: var(--disp-fg); }
+
+/* ───────────── target app and setting rows ───────────── */
+[data-look="pocket"] .target { border: 0; border-radius: 10px; background: var(--bg2); box-shadow: inset 0 0 0 1px var(--line), inset 0 2px 2px rgba(0, 0, 0, .06); }
+[data-look="pocket"] .t-meta { font-family: var(--font-mono); font-size: 11.5px; }
+[data-look="pocket"] .set + .set { border-top: 1px dashed var(--line); }
+
+/* switches become check keys: a small raised key with a pixel check, filled orange when on */
+[data-look="pocket"] .switch {
+  width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; margin-bottom: 2px; color: transparent;
+  background: linear-gradient(to bottom, color-mix(in srgb, #fff 14%, var(--surface-2)), var(--surface-2));
+  transform: translateY(calc(var(--press) * 2px));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--line) 75%, #000), 0 calc((1 - var(--press)) * 2px) 0 var(--lip-dark);
+  transition: --press calc(var(--m) * 60ms) ease-out, background calc(var(--m) * 120ms);
+}
+[data-look="pocket"] .switch::after { display: none; }
+[data-look="pocket"] .switch .i { display: block; width: 18px; height: 18px; }
+[data-look="pocket"] .switch:active { --press: 1; }
+[data-look="pocket"] .switch[aria-checked="true"] {
+  color: var(--on-accent); background: linear-gradient(to bottom, color-mix(in srgb, #fff 16%, var(--accent)), var(--accent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 62%, #000), 0 calc((1 - var(--press)) * 2px) 0 color-mix(in srgb, var(--accent) 52%, #000);
+}
+[data-look="pocket"] .switch[aria-checked="true"] .i { animation: pxWipe calc(var(--m) * 180ms + 1ms) steps(9, end); }
+@keyframes pxWipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* ───────────── picker ───────────── */
+[data-look="pocket"] .scrim { background: rgba(28, 22, 12, .34); backdrop-filter: blur(3px); }
+[data-look="pocket"][data-scheme="dark"] .scrim { background: rgba(0, 0, 0, .5); }
+[data-look="pocket"] .dialog { box-shadow: 0 24px 60px rgba(30, 22, 8, .28), 0 0 0 1px var(--line); }
+[data-look="pocket"] .dialog input[type="search"] { border-radius: 8px; box-shadow: inset 0 2px 2px rgba(0, 0, 0, .08); }
+[data-look="pocket"] .dialog input[type="search"]:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+[data-look="pocket"] .row { border-radius: 9px; }
+[data-look="pocket"] .row span { font-family: var(--font-mono); font-size: 11.5px; }
+[data-look="pocket"] .row.on { box-shadow: inset 3px 0 0 var(--accent); }

@@ -1,24 +1,42 @@
 # dimscreen
 
-dimscreen is a portable Windows desktop dimmer. It places a tinted, adjustable overlay across one or every display and keeps it above ordinary application windows.
+dimscreen is a portable Windows screen dimmer. It lays a tinted, adjustable shade over one display or all of them and keeps it above your other windows.
+
+It's written in Rust. The shade is a set of plain Win32 overlay windows run on their own thread, and the settings window is a small Tauri webview. It ships as one `.exe` of under 4 MB.
 
 ## Run it
 
-Open `dimscreen.exe`. The first launch opens settings with the shade off. Click **Shade Off** to enable it. The app then stays in the system tray when its settings window is closed.
+Open `dimscreen.exe`. The settings window opens, and the shade's on/off state is restored from last time. Closing the window keeps dimscreen in the system tray.
 
-The default global shortcut is **Ctrl + Alt + D**. Double-click the tray icon to open settings. Right-click it to toggle the shade or exit.
+- **Ctrl + Alt + D** turns the shade on and off from any app. You can change it under **Behavior › Shortcut**.
+- **Tray icon:** left-click opens settings. Right-click turns the shade on or off, or quits.
 
-## Customize it
+## What you can set
 
-- Set shade strength from 0% to full black.
-- Pick a tint or any color.
-- Shade all displays or choose one display.
-- Choose **All apps** or a running app. The shade appears while that app is in the foreground and hides when you switch away.
-- Change the global shortcut by clicking its button and pressing a key combination.
-- Let clicks pass through the overlay, start with Windows, and choose whether startup opens the settings window.
+- **Strength:** 0–100 %, with Soft, Focus and Night presets.
+- **Tint:** Ink, Warm amber, Blue hour, Rose dusk, or any custom color.
+- **Where:** every display, or one display you pick on the map. You can also limit it to one app, so the shade shows only while that app is in front. Switching to dimscreen, the taskbar, Start or Alt+Tab doesn't count as leaving the app.
+- **Behavior:** let clicks pass through the shade, start with Windows, start in the tray.
+- **Look:** Standard (a plain modern UI) or Pocket (the Pocket UI kit's handheld look), each in System, Light or Dark.
 
-Settings are saved in `%APPDATA%\dimscreen\settings.json`.
+Settings are saved in `%APPDATA%\dimscreen\settings.json`. Settings from the earlier C# version carry over.
+
+## Screenshots
+
+The shade is excluded from screen capture (`WDA_EXCLUDEFROMCAPTURE`, Windows 10 2004 or later). Screenshots, the Snipping Tool and screen recordings show your screen undimmed, and the shade no longer dims a capture of itself a second time.
 
 ## Coverage limits
 
-The overlay covers the normal Windows desktop, including the taskbar and ordinary application windows. Windows secure desktop screens, such as some UAC prompts and the lock screen, and some exclusive full-screen content can appear above it.
+The shade covers the desktop, the taskbar and ordinary windows, including other always-on-top windows. Windows' secure screens can appear above it: UAC prompts, the lock screen, and Ctrl+Alt+Del. Some exclusive full-screen games can too.
+
+## Build
+
+Requires Rust (stable, MSVC toolchain) and the WebView2 runtime, which is built into Windows 11.
+
+```
+cargo build --release
+```
+
+The app is `target/release/dimscreen.exe`. `cargo test` runs the unit tests, and `python tools/make_icons.py` redraws the icons.
+
+The bundled fonts in `ui/fonts` (Space Grotesk, Space Mono, Doto) are used by the Pocket look. They're licensed under the SIL Open Font License 1.1 (see `ui/fonts/OFL.txt`).

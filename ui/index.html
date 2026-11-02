@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-look="standard" data-scheme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dimscreen</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="pocket.css">
+</head>
+<body>
+<div class="screen bset-b8 fset-f3" id="screen">
+  <header class="top" data-tauri-drag-region>
+    <span class="logo" aria-hidden="true" data-tauri-drag-region><span class="logo-d">d</span></span>
+    <span class="brand" data-tauri-drag-region>dimscreen</span>
+    <span class="pill" id="pill" data-tauri-drag-region>Off</span>
+    <span class="sp" data-tauri-drag-region></span>
+    <div class="winkeys">
+      <button class="wk" id="wkMin" title="Minimize" aria-label="Minimize" data-icon="wmin"></button>
+      <button class="wk wk-x" id="wkClose" title="Close to the tray" aria-label="Close to the tray" data-icon="close"></button>
+    </div>
+  </header>
+
+  <main class="content">
+    <p class="note" id="note" hidden></p>
+
+    <div class="col">
+      <section class="panel" id="shade" aria-labelledby="shadeT">
+        <div class="ph"><span class="pt" id="shadeT" data-icon="moon">Shade</span><span class="sp"></span><span class="cnt" id="shortcutCnt"></span></div>
+        <div class="pb">
+          <div class="hero">
+            <div class="display" id="lcd">
+              <span class="d-lbl">Strength</span>
+              <span class="d-num num" id="lcdNum">50%</span>
+              <span class="d-sub" id="lcdSub">Off</span>
+              <span class="d-bar"><i id="lcdBar"></i></span>
+            </div>
+            <button class="btn primary lg" id="toggle" data-icon="power"><span id="toggleLabel">Turn on</span></button>
+          </div>
+          <input type="range" id="strength" min="0" max="100" step="1" aria-label="Strength">
+          <div class="presets">
+            <button class="btn" data-preset="25">Soft · 25%</button>
+            <button class="btn" data-preset="50">Focus · 50%</button>
+            <button class="btn" data-preset="70">Night · 70%</button>
+          </div>
+          <p class="hint" data-icon="camera">Screenshots and recordings never include the shade.</p>
+        </div>
+      </section>
+
+      <section class="panel" id="tint" aria-labelledby="tintT">
+        <div class="ph"><span class="pt" id="tintT" data-icon="drop">Tint</span><span class="sp"></span><span class="cnt" id="tintCnt"></span></div>
+        <div class="pb">
+          <div class="swatches" role="radiogroup" aria-labelledby="tintT">
+            <button class="sw" role="radio" data-hex="#000000"><i style="--c:#000000"></i><span>Ink</span></button>
+            <button class="sw" role="radio" data-hex="#32200A"><i style="--c:#32200A"></i><span>Warm amber</span></button>
+            <button class="sw" role="radio" data-hex="#0B1932"><i style="--c:#0B1932"></i><span>Blue hour</span></button>
+            <button class="sw" role="radio" data-hex="#2B101C"><i style="--c:#2B101C"></i><span>Rose dusk</span></button>
+            <label class="sw custom" role="radio" id="customSw"><i id="customDot"></i><span>Custom</span><input type="color" id="customColor" aria-label="Custom tint"></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="look" aria-labelledby="lookT">
+        <div class="ph"><span class="pt" id="lookT" data-icon="lab">Look</span></div>
+        <div class="pb">
+          <div class="set">
+            <span class="set-t">Style</span>
+            <div class="seg" id="lookSeg" role="radiogroup" aria-label="Style">
+              <button class="chip" role="radio" data-v="standard">Standard</button>
+              <button class="chip" role="radio" data-v="pocket">Pocket</button>
+            </div>
+          </div>
+          <div class="set">
+            <span class="set-t">Theme</span>
+            <div class="seg" id="themeSeg" role="radiogroup" aria-label="Theme">
+              <button class="chip" role="radio" data-v="system">System</button>
+              <button class="chip" role="radio" data-v="light">Light</button>
+              <button class="chip" role="radio" data-v="dark">Dark</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="foot">Closing this window keeps dimscreen running in the tray · v<span id="ver"></span></p>
+    </div>
+
+    <div class="col">
+      <section class="panel" id="where" aria-labelledby="whereT">
+        <div class="ph"><span class="pt" id="whereT" data-icon="display">Where</span></div>
+        <div class="pb">
+          <div class="field-h"><span>Displays</span><button class="chip" id="allDisplays">All displays</button></div>
+          <div class="map" id="map" role="group" aria-label="Displays"></div>
+          <div class="field-h"><span>Apps</span></div>
+          <div class="seg" id="appMode" role="radiogroup" aria-label="Apps">
+            <button class="chip" role="radio" data-v="all">All apps</button>
+            <button class="chip" role="radio" data-v="one">Only one app</button>
+          </div>
+          <div class="target" id="target" hidden>
+            <span class="t-main"><b id="targetName"></b><span class="t-meta" id="targetMeta"></span></span>
+            <button class="btn sm" id="pickApp">Change</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="behavior" aria-labelledby="behaviorT">
+        <div class="ph"><span class="pt" id="behaviorT" data-icon="keyboard">Behavior</span></div>
+        <div class="pb">
+          <div class="set">
+            <span class="set-t" id="hotkeyT">Shortcut<small>Turns the shade on and off from any app.</small></span>
+            <button class="btn keycap" id="hotkey" aria-describedby="hotkeyT"></button>
+          </div>
+          <p class="err" id="hotkeyErr" hidden>Another app already uses this shortcut. Pick a different one.</p>
+          <div class="set" data-switch="ClickThrough">
+            <span class="set-t">Let clicks pass through<small>Off blocks the mouse on dimmed displays.</small></span>
+            <button class="switch" role="switch" aria-label="Let clicks pass through"></button>
+          </div>
+          <div class="set" data-switch="LaunchAtStartup">
+            <span class="set-t">Start with Windows</span>
+            <button class="switch" role="switch" aria-label="Start with Windows"></button>
+          </div>
+          <div class="set sub" data-switch="StartHidden">
+            <span class="set-t">Start in the tray<small>Skip opening this window at sign-in.</small></span>
+            <button class="switch" role="switch" aria-label="Start in the tray"></button>
+          </div>
+        </div>
+      </section>
+
+
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="picker" hidden>
+  <section class="panel dialog" role="dialog" aria-modal="true" aria-labelledby="pickerT">
+    <div class="ph"><span class="pt" id="pickerT" data-icon="app">Choose an app</span><span class="sp"></span><button class="btn ghost sm" id="pickerClose" title="Close" aria-label="Close" data-icon="close"></button></div>
+    <div class="pb">
+      <input type="search" id="pickerSearch" placeholder="Search running apps" autocomplete="off" spellcheck="false">
+      <div class="list" id="pickerList" role="listbox" aria-labelledby="pickerT"></div>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
