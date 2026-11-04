@@ -25,6 +25,8 @@ Settings are saved in `%APPDATA%\dimscreen\settings.json`. Settings from the ear
 
 The shade is excluded from screen capture (`WDA_EXCLUDEFROMCAPTURE`, Windows 10 2004 or later). Screenshots, the Snipping Tool and screen recordings show your screen undimmed, and the shade no longer dims a capture of itself a second time.
 
+While the Snipping Tool's overlay is up (Win+Shift+S or Print Screen), the shade hides, so you pick your snip from an undimmed screen. It fades back in when the overlay closes.
+
 ## Coverage limits
 
 The shade covers the desktop, the taskbar and ordinary windows, including other always-on-top windows. Windows' secure screens can appear above it: UAC prompts, the lock screen, and Ctrl+Alt+Del. Some exclusive full-screen games can too.

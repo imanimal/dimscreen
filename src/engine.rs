@@ -4,6 +4,8 @@
 //! - Every shade window is excluded from screen capture (`WDA_EXCLUDEFROMCAPTURE`), so screenshots,
 //!   the Snipping Tool's frozen frame and screen recordings show the screen without the dim. Before
 //!   this, a screenshot captured the shade and the shade then dimmed that capture a second time.
+//! - It steps aside while the Snipping Tool's overlay is up. The overlay shows that frozen frame as
+//!   an always-on-top window, and the shade would otherwise sit above it and dim what you select from.
 //! - It stays on top: re-raised when the foreground window changes and once a second.
 //! - It follows the display layout: rebuilt after monitors change, resolution changes and resume.
 //! - With a target app it shows only while that app is in front. Switching to dimscreen itself, the
@@ -88,6 +90,9 @@ const SHELL_CLASSES: &[&str] = &[
     "Windows.UI.Core.CoreWindow",
 ];
 
+/// The Snipping Tool's full-screen overlay (Win+Shift+S, Print Screen).
+const SNIP_OVERLAY_CLASS: &str = "SnipOverlayRootWindow";
+
 static TINT: AtomicU32 = AtomicU32::new(0);
 
 thread_local! {
@@ -138,6 +143,8 @@ struct State {
     hotkey_ok: bool,
     settings: HWND,
     settings_focused: bool,
+    /// The Snipping Tool overlay while it's on screen; the shade stays hidden until it goes.
+    snip: HWND,
     status: Option<Status>,
 }
 
@@ -189,20 +196,18 @@ fn run(rx: Receiver<Msg>, host_tx: Sender<isize>, on_event: Box<dyn Fn(Event)>) 
                 hotkey_ok: true,
                 settings: std::ptr::null_mut(),
                 settings_focused: false,
+                snip: std::ptr::null_mut(),
                 status: None,
             })
         });
         let _ = host_tx.send(host as isize);
 
-        let hook: HWINEVENTHOOK = SetWinEventHook(
-            EVENT_SYSTEM_FOREGROUND,
-            EVENT_SYSTEM_FOREGROUND,
-            std::ptr::null_mut(),
-            Some(on_foreground),
-            0,
-            0,
-            WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS,
-        );
+        let flags = WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS;
+        let foreground: HWINEVENTHOOK =
+            SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, std::ptr::null_mut(), Some(on_foreground), 0, 0, flags);
+        // destroy, show and hide, to catch the Snipping Tool overlay coming and going
+        let objects: HWINEVENTHOOK =
+            SetWinEventHook(EVENT_OBJECT_DESTROY, EVENT_OBJECT_HIDE, std::ptr::null_mut(), Some(on_object), 0, 0, flags);
         SetTimer(host, T_RAISE, 1000, None);
 
         let mut msg = MSG::default();
@@ -210,7 +215,8 @@ fn run(rx: Receiver<Msg>, host_tx: Sender<isize>, on_event: Box<dyn Fn(Event)>) 
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
-        UnhookWinEvent(hook);
+        UnhookWinEvent(foreground);
+        UnhookWinEvent(objects);
     }
 }
 
@@ -285,6 +291,24 @@ unsafe extern "system" fn shade_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARA
 
 unsafe extern "system" fn on_foreground(_: HWINEVENTHOOK, _: u32, hwnd: HWND, _: i32, _: i32, _: u32, _: u32) {
     with(|s, ev| s.foreground_changed(hwnd, ev));
+}
+
+unsafe extern "system" fn on_object(_: HWINEVENTHOOK, event: u32, hwnd: HWND, object: i32, child: i32, _: u32, _: u32) {
+    // only whole windows; these events also fire for carets, cursors and controls
+    if object != OBJID_WINDOW || child != CHILDID_SELF as i32 || hwnd.is_null() {
+        return;
+    }
+    if event == EVENT_OBJECT_SHOW {
+        if class_name(hwnd) == SNIP_OVERLAY_CLASS {
+            with(|s, ev| s.set_snip(hwnd, ev));
+        }
+    } else {
+        with(|s, ev| {
+            if s.snip == hwnd {
+                s.set_snip(std::ptr::null_mut(), ev);
+            }
+        });
+    }
 }
 
 impl State {
@@ -392,7 +416,7 @@ impl State {
 
     /// The alpha the shade should have right now.
     fn desired(&self) -> f32 {
-        if self.cfg.on && self.target_front {
+        if self.cfg.on && self.target_front && self.snip.is_null() {
             f32::from(self.cfg.alpha)
         } else {
             0.0
@@ -484,6 +508,26 @@ impl State {
         self.raise();
     }
 
+    /// Hides the shade at once while the Snipping Tool overlay is up (it's already on screen, so a
+    /// fade would show it dimmed), and fades the shade back in once the overlay goes.
+    fn set_snip(&mut self, hwnd: HWND, ev: &mut Vec<Event>) {
+        if hwnd == self.snip {
+            return;
+        }
+        self.snip = hwnd;
+        if hwnd.is_null() {
+            self.retarget(ev);
+            return;
+        }
+        if self.fading {
+            self.fading = false;
+            unsafe { KillTimer(self.host, T_FADE) };
+        }
+        self.alpha_now = 0.0;
+        self.show_alpha();
+        self.report(ev);
+    }
+
     fn foreground_changed(&mut self, hwnd: HWND, ev: &mut Vec<Event>) {
         self.check_foreground(hwnd);
         self.retarget(ev);
@@ -508,8 +552,12 @@ impl State {
             .unwrap_or(false);
     }
 
-    /// Once a second: stay on top, and re-check the front app in case an event was missed.
+    /// Once a second: stay on top, and re-check the front app and the snipping overlay in case an
+    /// event was missed.
     fn tick(&mut self, ev: &mut Vec<Event>) {
+        if !self.snip.is_null() && unsafe { IsWindowVisible(self.snip) } == 0 {
+            self.set_snip(std::ptr::null_mut(), ev);
+        }
         if !self.cfg.target.is_empty() {
             let before = self.target_front;
             self.check_foreground(unsafe { GetForegroundWindow() });
@@ -534,8 +582,11 @@ impl State {
 }
 
 fn is_shell_window(hwnd: HWND) -> bool {
+    SHELL_CLASSES.contains(&class_name(hwnd).as_str())
+}
+
+fn class_name(hwnd: HWND) -> String {
     let mut buf = [0u16; 128];
     let n = unsafe { GetClassNameW(hwnd, buf.as_mut_ptr(), buf.len() as i32) }.max(0) as usize;
-    let class = String::from_utf16_lossy(&buf[..n]);
-    SHELL_CLASSES.contains(&class.as_str())
+    String::from_utf16_lossy(&buf[..n])
 }
